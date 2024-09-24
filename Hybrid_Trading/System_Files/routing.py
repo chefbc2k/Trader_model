@@ -6,15 +6,17 @@ from .consumers import (
     ModelTrainerConsumer,
     TradeExecutionConsumer,
     ChartDataConsumer,
-    ResultsConsumer
+    ResultsConsumer,
+    EchoConsumer  # Add EchoConsumer here
 )
 
 websocket_urlpatterns = [
-    re_path(r'ws/portfolio/$', PortfolioConsumer.as_asgi()),
-    re_path(r'ws/backtest-progress/$', BacktestProgressConsumer.as_asgi()),
-    re_path(r'ws/user-input/$', UserInputConsumer.as_asgi()),
-    re_path(r'ws/model-trainer/$', ModelTrainerConsumer.as_asgi()),
-    re_path(r'ws/trade-execution/$', TradeExecutionConsumer.as_asgi()),
-    re_path(r'ws/chart-data/$', ChartDataConsumer.as_asgi()),
-    re_path(r'ws/results/$', ResultsConsumer.as_asgi()),
+    re_path(r'^ws/portfolio/$', PortfolioConsumer.as_asgi()),
+    re_path(r'^ws/backtest-progress/$', BacktestProgressConsumer.as_asgi()),
+    re_path(r'^ws/user-input/$', UserInputConsumer.as_asgi()),
+    re_path(r'^ws/model-trainer/$', ModelTrainerConsumer.as_asgi()),
+    re_path(r'^ws/trade-execution/$', TradeExecutionConsumer.as_asgi()),
+    re_path(r'^ws/chart-data/$', ChartDataConsumer.as_asgi()),
+    re_path(r'^ws/results/$', ResultsConsumer.as_asgi()),
+    re_path(r'^ws/echo/$', EchoConsumer.as_asgi()),  # Add EchoConsumer route
 ]

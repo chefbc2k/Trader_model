@@ -1,105 +1,170 @@
+/* Web_interface/css/styles.css */
+
+/* Body styling */
 body {
-    background-image: url("../img/RL_logo.png"); /* Ensure correct path */
-    background-size: cover;        /* Ensures the image covers the entire background */
-    background-position: center;   /* Centers the image */
-    background-repeat: no-repeat;  /* Prevents the image from repeating */
-    background-attachment: fixed;  /* Keeps the background fixed while scrolling */
-    color: #ffffff;                /* Adjusts text color for contrast */
-}
-
-header {
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black for contrast */
-    color: #ffffff;
-    padding: 15px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-header h1 {
-    text-align: center;
-    font-weight: 500;
-}
-
-nav {
-    margin-top: 10px;
-}
-
-nav ul {
-    list-style: none;
-    display: flex;
-    justify-content: center;
+    background-color: #343a40; /* Dark background to match Darkly theme */
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    margin: 0;
     padding: 0;
+    color: #ffffff; /* Set default text color to white */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
-nav ul li {
-    margin: 0 15px;
-}
-
-nav ul li a {
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-nav ul li a:hover {
-    color: #f0f0f0;
-}
-
-main {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-footer {
-    background-color: rgba(0, 0, 0, 0.7); /* Semi-transparent black for contrast */
-    color: #ffffff;
+/* Centering the main content */
+main.container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center vertically */
+    align-items: center;     /* Center horizontally */
     text-align: center;
-    padding: 15px 0;
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    padding: 20px;
 }
 
-button {
-    background-color: #0a84ff; /* Apple-style blue color */
-    border: none;
+/* Styling for the heading */
+main.container h1, main.container h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+    color: #ffffff; /* White text for contrast */
+}
+
+/* Styling for the paragraph */
+main.container p {
+    font-size: 18px;
+    color: #dcdcdc; /* Light gray text */
+    margin-bottom: 30px;
+}
+
+/* Submit Button Adjustments */
+.btn-primary {
+    background-color: #007bff !important; /* Clear blue color */
+    border-color: #007bff !important;
+    color: #ffffff !important; /* White text for contrast */
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #0056b3 !important; /* Darker blue on hover or focus */
+    border-color: #0056b3 !important;
+    color: #ffffff !important;
+}
+
+/* Secondary Button Adjustments */
+.btn-secondary {
+    background-color: #6c757d !important; /* Adjusted gray */
+    border-color: #6c757d !important;
+    color: #ffffff !important; /* White text for contrast */
+}
+
+.btn-secondary:hover, .btn-secondary:focus {
+    background-color: #5a6268 !important; /* Darker gray on hover or focus */
+    border-color: #5a6268 !important;
+    color: #ffffff !important;
+}
+
+/* Additional Button Styles (Optional) */
+.btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+    color: #ffffff !important;
+}
+
+.btn-success:hover, .btn-success:focus {
+    background-color: #218838 !important;
+    border-color: #1e7e34 !important;
+    color: #ffffff !important;
+}
+
+.btn-danger {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: #ffffff !important;
+}
+
+.btn-danger:hover, .btn-danger:focus {
+    background-color: #c82333 !important;
+    border-color: #bd2130 !important;
+    color: #ffffff !important;
+}
+
+.btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important; /* Dark text for better contrast */
+}
+
+.btn-warning:hover, .btn-warning:focus {
+    background-color: #e0a800 !important;
+    border-color: #d39e00 !important;
+    color: #212529 !important;
+}
+
+.btn-info {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+    color: #ffffff !important;
+}
+
+.btn-info:hover, .btn-info:focus {
+    background-color: #138496 !important;
+    border-color: #117a8b !important;
+    color: #ffffff !important;
+}
+
+/* Confirmation Message Styling */
+.alert-success {
+    background-color: #28a745 !important; /* Green background */
+    color: #ffffff !important; /* White text */
+    border-color: #28a745 !important;
+}
+
+/* Progress Bar Styling */
+.progress-bar {
+    background-color: #17a2b8 !important; /* Teal color for progress */
+}
+
+.progress-bar.bg-danger {
+    background-color: #dc3545 !important; /* Red color for errors */
+}
+
+/* Optional Styling for Better Contrast with Background */
+header, footer {
+    background-color: #212529; /* Dark background */
     color: #ffffff;
-    padding: 10px 20px;
-    font-size: 16px;
+}
+
+/* Adjust navbar link styling */
+.navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #ffffff !important;
+}
+
+/* Carousel image adjustments */
+.carousel-item img {
+    max-height: 500px;
+    object-fit: cover;
+    width: 100%;
+}
+
+/* Carousel captions */
+.carousel-caption h5,
+.carousel-caption p {
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+    padding: 10px;
     border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
-button:hover {
-    background-color: #007aff; /* Darker blue on hover */
-}
-
-input[type="file"] {
-    margin-top: 20px;
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-canvas {
-    display: block;
-    margin: 40px auto;
-}
-
+/* Responsive adjustments */
 @media (max-width: 768px) {
-    nav ul {
-        flex-direction: column;
-        align-items: center;
+    .btn-primary, .btn-secondary, .btn-success, .btn-danger, .btn-warning, .btn-info {
+        width: 100%;
+        max-width: 300px;
     }
-
-    nav ul li {
-        margin: 10px 0;
-    }
-
-    header, footer {
-        padding: 20px;
+    .carousel-item img {
+        max-height: 300px;
     }
 }

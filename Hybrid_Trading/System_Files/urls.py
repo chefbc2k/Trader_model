@@ -1,8 +1,8 @@
 from django.contrib import admin
 from django.urls import include, path
-
+from django.conf import settings
 urlpatterns = [
-    
+    path('admin/', admin.site.urls),
     path('', include('Hybrid_Trading.Web_interface.urls', namespace='web_interface')),  # Web Interface
     path('forecaster/', include('Hybrid_Trading.Forecaster.urls', namespace='forecaster')),  # Forecaster
     path('model_trainer/', include('Hybrid_Trading.Model_Trainer.urls', namespace='model_trainer')),  # Model Trainer
@@ -13,3 +13,8 @@ urlpatterns = [
     path('backtester/', include('Hybrid_Trading.Backtester.urls', namespace='backtester')),  # Backtester
     path('trading/', include('Hybrid_Trading.Trading.urls', namespace='trading')),  # Trading
 ]
+if settings.DEBUG:
+    import debug_toolbar
+    urlpatterns = [
+        path('__debug__/', include(debug_toolbar.urls)),
+    ] + urlpatterns

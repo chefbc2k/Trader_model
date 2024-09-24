@@ -1,5 +1,4 @@
-// /Users/chefsbae/TB/new-3rdtime/3rdtime/Hybrid_Trading/Web_interface/static/web_interface/js/scripts.js
-
+// WebSocket handling for real-time progress tracking
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.getElementById('user-input-form');
     const confirmationMessage = document.getElementById('confirmation-message');
@@ -7,19 +6,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const progressBar = document.getElementById('progress-bar');
     const progressMessage = document.getElementById('progress-message');
 
-    // Establish WebSocket connection
-    const websocket = new WebSocket(
-        'ws://' + window.location.host +
-        '/ws/user-input/'  // Ensure this matches your routing.py WebSocket URL pattern
-    );
+    // WebSocket initialization
+    const ws = new WebSocket('ws://' + window.location.host + '/ws/user-input/');
 
-    websocket.onopen = function () {
+    ws.onopen = function () {
         console.log('WebSocket connection established.');
     };
 
-    websocket.onmessage = function (e) {
+    ws.onmessage = function (e) {
         const data = JSON.parse(e.data);
-        
+
         // Handle progress updates
         if (data.progress !== undefined && data.message !== undefined) {
             // Update progress bar
@@ -51,10 +47,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     };
 
-    websocket.onclose = function (e) {
+    ws.onclose = function (e) {
         console.error('WebSocket connection closed unexpectedly.');
     };
 
+    // Form submission
     form.addEventListener('submit', function (event) {
         event.preventDefault(); // Prevent default form submission
 
@@ -82,31 +79,7 @@ document.addEventListener('DOMContentLoaded', function () {
             fillna_method: form.fillna_method.value,
         };
 
-        // Send form data via WebSocket
-        websocket.send(JSON.stringify({
-            'form_data': formData
-        }));
+        // Send data to WebSocket
+        ws.send(JSON.stringify(formData));
     });
-
-    // Bootstrap form validation
-    (function () {
-        'use strict';
-        window.addEventListener('load', function () {
-            // Fetch all the forms we want to apply custom Bootstrap validation styles to
-            var forms = document.getElementsByClassName('needs-validation');
-
-            // Loop over them and prevent submission
-            var validation = Array.prototype.filter.call(forms, function (form) {
-                form.addEventListener('submit', function (event) {
-                    if (form.checkValidity() === false) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        // Re-enable the submit button if validation fails
-                        form.querySelector('button[type="submit"]').disabled = false;
-                    }
-                    form.classList.add('was-validated');
-                }, false);
-            });
-        }, false);
-    })();
 });

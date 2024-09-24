@@ -10,12 +10,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent  # This should point to 'Hybrid_Trading/'
-print("BASE_DIR:", BASE_DIR)
+BASE_DIR = Path(__file__).resolve().parent  # This now points directly to Hybrid_Trading 
+
 
 # Security
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Loaded directly from the environment
-DEBUG = os.getenv('DJANGO_DEBUG', 'False').lower() in ('true', '1', 't', 'yes')
+DEBUG = os.getenv('DJANGO_DEBUG', 'TRUE').lower() in ('true', '1', 't', 'yes')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add your allowed hosts here if necessary
 
@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'Hybrid_Trading',  # Main app
+     'debug_toolbar',
     'channels',  # Channels for WebSockets
     'Hybrid_Trading.Web_interface',
     'Hybrid_Trading.Symbols',
@@ -43,6 +44,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Allows serving static files in development
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -53,6 +55,29 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Debug Toolbar settings
+INTERNAL_IPS = [
+    '127.0.0.1',
+    # Add any other IPs you want to allow, e.g., '192.168.1.100',
+]
+DEBUG_TOOLBAR_PANELS = [
+    'debug_toolbar.panels.versions.VersionsPanel',
+    'debug_toolbar.panels.timer.TimerPanel',
+    'debug_toolbar.panels.settings.SettingsPanel',
+    'debug_toolbar.panels.headers.HeadersPanel',
+    'debug_toolbar.panels.request.RequestPanel',
+    'debug_toolbar.panels.sql.SQLPanel',
+    'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+    'debug_toolbar.panels.templates.TemplatesPanel',
+    'debug_toolbar.panels.cache.CachePanel',
+    'debug_toolbar.panels.signals.SignalsPanel',
+    'debug_toolbar.panels.logging.LoggingPanel',
+    'debug_toolbar.panels.redirects.RedirectsPanel',
+]
+DEBUG_TOOLBAR_CONFIG = {
+    'INTERCEPT_REDIRECTS': False,
+    'SHOW_TEMPLATE_CONTEXT': True,
+}
 # Update ROOT_URLCONF
 ROOT_URLCONF = 'Hybrid_Trading.System_Files.urls'
 
@@ -120,7 +145,7 @@ STATIC_URL = '/static/'
 
 # Where Django looks for static files during development
 STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'Hybrid_Trading', 'Web_interface', 'static'),
+os.path.join(BASE_DIR.parent, 'Web_interface', 'static'), 
 ]
 
 # For production (where static files are collected)
@@ -134,40 +159,65 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
-            'level': 'ERROR',
+            'level': 'DEBUG',  # Show everything from debug level upwards in the console
             'class': 'logging.StreamHandler',
+            'formatter': 'simple',
         },
         'file': {
-            'level': 'ERROR',
+            'level': 'DEBUG',  # Capture everything from debug level upwards in the log file
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'Hybrid_Trading_logs.log'),
+            'formatter': 'verbose',
         },
     },
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'DEBUG',  # Show all Django-related logs at DEBUG level
             'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['file'],
+            'level': 'DEBUG',  # Capture all database-related logs
+            'propagate': False,
         },
         'hybrid_trading': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',
+            'level': 'DEBUG',  # Set 'hybrid_trading' app logging level to DEBUG
             'propagate': True,
         },
-    }
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'ERROR',  # Log errors only for HTTP requests
+            'propagate': False,
+        },
+        'django.security': {
+            'handlers': ['file'],
+            'level': 'WARNING',  # Capture security warnings in the log file
+            'propagate': False,
+        },
+    },
 }
 
 # Channels (WebSocket configuration)
 CHANNEL_LAYERS = {
-    "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
-        "CONFIG": {
-            "hosts": [("127.0.0.1", 6379)],  # Redis configuration
-        },
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
+
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

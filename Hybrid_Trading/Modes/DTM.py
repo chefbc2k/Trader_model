@@ -1,7 +1,5 @@
 import logging
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
-from functools import cache
 from django.utils.timezone import now
 from Hybrid_Trading.Pipeline.FDS import FetchDataStage
 from Hybrid_Trading.Pipeline.GSS import GenerateSignalsStage
@@ -15,7 +13,7 @@ from asgiref.sync import async_to_sync
 import uuid  # For generating unique task IDs
 
 class DTPipelineOrchestrator:
-    def __init__(self, tickers, interval, start_date, end_date, period, fillna_method, sentiment_type, task_id):
+    def __init__(self, tickers, interval, start_date, end_date, period, fillna_method, sentiment_type):
         """
         Initialize the pipeline orchestrator using form data.
         """
@@ -23,10 +21,10 @@ class DTPipelineOrchestrator:
         self.interval = interval
         self.start_date = start_date
         self.end_date = end_date
-        self.period = period  # Added period parameter
+        self.period = period
         self.fillna_method = fillna_method
         self.sentiment_type = sentiment_type
-        self.task_id = task_id  # Unique identifier for the task
+        self.task_id = str(uuid.uuid4())  # Generate unique task ID using uuid
         self.logger = LoggingMaster("TradingPipelineOrchestrator").get_logger()
 
         # Initializing each pipeline stage with relevant parameters
@@ -42,16 +40,20 @@ class DTPipelineOrchestrator:
         self.completed_steps = 0
         self.lock = asyncio.Lock()  # To ensure thread-safe updates
 
-        # Initialize channel layer
+        # Initialize channel layer for WebSocket communication
         self.channel_layer = get_channel_layer()
-        self.group_name = f'progress_{self.task_id}'  # Group name for sending updates
+        self.group_name = f'progress_{self.task_id}'  # Group name for sending WebSocket updates
 
     async def run_day_trading_pipeline(self):
+        """
+        Run the entire day trading pipeline asynchronously.
+        """
         self.logger.info("Starting the day trading pipeline.")
 
-        # Send initial progress update
+        # Send initial progress update via WebSocket
         await self.send_progress(status='running', progress=0, message='Pipeline started.')
 
+        # Check for blacklisted tickers
         if any(blacklisted in self.tickers for blacklisted in self.BLACKLIST):
             self.logger.warning("Ticker list contains blacklisted items and will not be processed.")
             await self.send_progress(status='error', progress=100, message='Ticker list contains blacklisted items.')
@@ -72,6 +74,9 @@ class DTPipelineOrchestrator:
         self.logger.info("Day trading pipeline completed successfully.")
 
     async def process_ticker(self, ticker, session):
+        """
+        Process each ticker asynchronously by running through all pipeline stages.
+        """
         self.logger.info(f"Starting pipeline for ticker: {ticker}")
 
         # 1. Fetch Data Stage
@@ -81,11 +86,11 @@ class DTPipelineOrchestrator:
             if not fetch_success:
                 self.logger.error(f"Fetch Data Stage failed for {ticker}. Skipping to next ticker.")
                 await self.send_progress(status='running', progress=self.calculate_progress(), message=f"Fetch Data Stage failed for {ticker}.")
-                return  # Skip further processing for this ticker
+                return
         except Exception as e:
             self.logger.error(f"Error in Fetch Data Stage for {ticker}: {e}")
             await self.send_progress(status='running', progress=self.calculate_progress(), message=f"Error in Fetch Data Stage for {ticker}: {str(e)}")
-            return  # Skip further processing for this ticker
+            return
 
         # Update progress after Fetch Data Stage
         await self.increment_progress(message=f"Fetch Data Stage completed for {ticker}.")
@@ -97,11 +102,11 @@ class DTPipelineOrchestrator:
             if not signals_success:
                 self.logger.error(f"Generate Signals Stage failed for {ticker}. Skipping to next ticker.")
                 await self.send_progress(status='running', progress=self.calculate_progress(), message=f"Generate Signals Stage failed for {ticker}.")
-                return  # Skip further processing for this ticker
+                return
         except Exception as e:
             self.logger.error(f"Error in Generate Signals Stage for {ticker}: {e}")
             await self.send_progress(status='running', progress=self.calculate_progress(), message=f"Error in Generate Signals Stage for {ticker}: {str(e)}")
-            return  # Skip further processing for this ticker
+            return
 
         # Update progress after Generate Signals Stage
         await self.increment_progress(message=f"Generate Signals Stage completed for {ticker}.")
@@ -149,7 +154,7 @@ class DTPipelineOrchestrator:
 
     async def increment_progress(self, message):
         """
-        Safely increment the completed_steps and update the progress.
+        Safely increment the completed steps and update the progress percentage.
         """
         async with self.lock:
             self.completed_steps += 1

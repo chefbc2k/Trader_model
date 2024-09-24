@@ -1,8 +1,7 @@
+from asyncio.log import logger
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
-from asgiref.sync import async_to_sync
 import asyncio
-from Hybrid_Trading.Trading.models import TradeResults, PerformanceMetrics, Signals
 from datetime import datetime
 
 # 1. Portfolio Consumer (Handles portfolio management via WebSocket)
@@ -51,28 +50,42 @@ class BacktestProgressConsumer(AsyncWebsocketConsumer):
 # 3. User Input Consumer (Processes form data sent through WebSocket)
 class UserInputConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        await self.accept()
+        logger.info("UserInputConsumer: Attempting to connect")
+        try:
+            await self.accept()
+            logger.info("UserInputConsumer: Connection accepted")
+        except Exception as e:
+            logger.error(f"UserInputConsumer: Connection failed with error: {e}")
 
     async def disconnect(self, close_code):
-        pass
+        logger.info(f"UserInputConsumer: Disconnected with code {close_code}")
 
     async def receive(self, text_data):
-        # Process user input data
-        form_data = json.loads(text_data)
+        logger.info(f"UserInputConsumer: Received data: {text_data}")
+        try:
+            # Import models inside the method to ensure Django is ready
+            from Hybrid_Trading.Trading.models import TradeResults, PerformanceMetrics, Signals
 
-        # Simulate processing of form data and send progress updates
-        for progress in range(0, 101, 10):
+            # Process the received data
+            form_data = json.loads(text_data)
+            for progress in range(0, 101, 10):
+                await self.send(text_data=json.dumps({
+                    'progress': progress,
+                    'message': f'Processing form data: {progress}% completed'
+                }))
+                await asyncio.sleep(1)
+
             await self.send(text_data=json.dumps({
-                'progress': progress,
-                'message': f'Processing form data: {progress}% completed'
+                'status': 'completed',
+                'message': 'User input processed successfully.'
             }))
-            await asyncio.sleep(1)
-
-        await self.send(text_data=json.dumps({
-            'status': 'completed',
-            'message': 'User input processed successfully.'
-        }))
-
+            logger.info("UserInputConsumer: Processing completed successfully")
+        except Exception as e:
+            logger.error(f"UserInputConsumer: Error processing data: {e}")
+            await self.send(text_data=json.dumps({
+                'status': 'error',
+                'message': f"Error: {str(e)}"
+            }))
 # 4. Orchestration Consumer (Handles model training orchestration via WebSocket)
 
 class ModelTrainerConsumer(AsyncWebsocketConsumer):
@@ -172,6 +185,9 @@ class ResultsConsumer(AsyncWebsocketConsumer):
         pass
 
     async def receive(self, text_data):
+        # Import models inside the method
+        from Hybrid_Trading.Trading.models import TradeResults, PerformanceMetrics, Signals
+        # Now you can use the models safely
         # Parse incoming request for results data
         data = json.loads(text_data)
         tickers = data.get('tickers', [])
@@ -211,4 +227,31 @@ class ResultsConsumer(AsyncWebsocketConsumer):
             await self.send(text_data=json.dumps({
                 'error': str(e),
                 'status': 'error'
+            }))
+            
+class EchoConsumer(AsyncWebsocketConsumer):
+    async def connect(self):
+        logger.info("EchoConsumer: Attempting to connect")
+        try:
+            await self.accept()
+            logger.info("EchoConsumer: Connection accepted")
+        except Exception as e:
+            logger.error(f"EchoConsumer: Connection failed: {e}")
+
+    async def disconnect(self, close_code):
+        logger.info(f"EchoConsumer: Disconnected with code {close_code}")
+
+    async def receive(self, text_data):
+        logger.info(f"EchoConsumer: Received data: {text_data}")
+        try:
+            # Parse the incoming JSON data
+            data = json.loads(text_data)
+            # Echo back the received message
+            await self.send(text_data=json.dumps(data))
+            logger.info("EchoConsumer: Echoed back the data")
+        except json.JSONDecodeError as e:
+            logger.error(f"EchoConsumer: JSON decode error: {e}")
+            await self.send(json.dumps({
+                'status': 'error',
+                'message': f"Error: {str(e)}"
             }))

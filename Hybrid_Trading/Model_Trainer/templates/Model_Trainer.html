@@ -1,25 +1,131 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Model Trainer Configuration</title>
+    <title>{% block title %}Model Trainer Configuration{% endblock %}</title>
 
-    <!-- Load static files in Django -->
-    {% load static %}
-    
-    <!-- Link to CSS -->
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
-    
+
     <style>
-        /* CSS content remains unchanged */
+        body {
+            background: linear-gradient(to bottom, #d3d3d3, white);
+            font-family: Arial, sans-serif;
+        }
+
+        #model-trainer-form {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+
+        #progress-container {
+            text-align: center;
+            margin-top: 30px;
+            display: none;
+        }
+
+        #progress-bar {
+            width: 0;
+            height: 30px;
+            background-color: #28a745;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 5px;
+        }
     </style>
 </head>
+
 <body>
-    <!-- Navigation link back to the home page (Web Application Index) -->
-    <div class="navigation-link">
-        <a href="{% url 'web_interface:index' %}">Home</a>
-    </div>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <!-- Navbar Brand -->
+            <a class="navbar-brand" href="{% url 'web_interface:index' %}">My Trading App</a>
+            
+            <!-- Navbar Toggler for mobile view -->
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- Navbar Links -->
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <!-- Home Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'web_interface:index' %}">Home</a>
+                    </li>
+                    
+                    <!-- Portfolio Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'trading:portfolio' %}">Portfolio</a>
+                    </li>
+                    
+                    <!-- Market Status Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'trading:results' %}">Market Status</a>
+                    </li>
+                    
+                    <!-- User Input Link -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inputs:user_input' %}">Trading Bot Config</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
     <!-- Model Trainer Configuration Form -->
     <h1>Model Trainer Configuration</h1>
@@ -43,119 +149,47 @@
         <pre id="training-log"></pre>
     </div>
 
-    <!-- Results Section -->
-    <div id="results-section" style="display:none;">
-        <h2>Model Training Results</h2>
-        
-        <!-- Table for displaying results dynamically -->
-        <table>
-            <thead>
-                <tr>
-                    <th>Model Type</th>
-                    <th>Feature Selection</th>
-                    <th>Optimization Method</th>
-                    <th>Start Date</th>
-                    <th>End Date</th>
-                    <th>MAE</th>
-                    <th>RMSE</th>
-                    <th>MAPE</th>
-                    <th>R-Squared</th>
-                </tr>
-            </thead>
-            <tbody id="results-body"></tbody>
-        </table>
-        
-        <!-- Plot Section (Plotly, Bokeh, etc.) -->
-        <div class="plot-section">
-            <h2>Model Performance Plots</h2>
-            <div id="plot-container"></div>
-        </div>
-    </div>
-
     <!-- WebSocket-based form handling script -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const form = document.getElementById('model-trainer-form');
-            const progressBarContainer = document.getElementById('progress-container');
             const progressBar = document.getElementById('progress-bar');
             const trainingLog = document.getElementById('training-log');
-            const resultsSection = document.getElementById('results-section');
-            const resultsBody = document.getElementById('results-body');
-            const plotContainer = document.getElementById('plot-container');
-
+            const progressBarContainer = document.getElementById('progress-container');
+            
             // WebSocket initialization
             const websocket = new WebSocket(
-                'ws://' + window.location.host + '/ws/orchestration/'  // Ensure this matches your routing.py WebSocket URL pattern
+                'ws://' + window.location.host + '/ws/orchestration/'  // WebSocket URL pattern
             );
-
-            websocket.onopen = function () {
-                console.log('WebSocket connection established.');
-            };
 
             websocket.onmessage = function (e) {
                 const data = JSON.parse(e.data);
 
-                // Handle progress updates
-                if (data.progress !== undefined) {
+                // Update progress bar
+                if (data.progress) {
                     progressBar.style.width = data.progress + '%';
                     progressBar.innerText = data.progress + '%';
                 }
 
-                // Handle logs
+                // Display logs
                 if (data.logs) {
                     trainingLog.textContent = data.logs;
                 }
-
-                // Handle results
-                if (data.results) {
-                    displayResults(data.results);
-                }
             };
 
-            websocket.onclose = function () {
-                console.error('WebSocket connection closed unexpectedly.');
-            };
-
-            // Form submission
+            // Form submission with WebSocket
             form.addEventListener('submit', function (event) {
-                event.preventDefault(); // Prevent default form submission
-
-                // Show progress bar and reset logs
+                event.preventDefault();
                 progressBarContainer.style.display = 'block';
                 progressBar.style.width = '0%';
                 progressBar.innerText = '0%';
                 trainingLog.textContent = '';
 
-                // Collect form data
+                // Send form data through WebSocket
                 const formData = new FormData(form);
-                const data = {};
-                formData.forEach((value, key) => data[key] = value);
-
-                // Send form data via WebSocket
+                const data = Object.fromEntries(formData.entries());
                 websocket.send(JSON.stringify(data));
             });
-
-            function displayResults(results) {
-                resultsSection.style.display = 'block';
-
-                // Populate results table
-                resultsBody.innerHTML = `
-                    <tr>
-                        <td>${results.model_type}</td>
-                        <td>${results.feature_selection_method}</td>
-                        <td>${results.optimization_method}</td>
-                        <td>${results.start_date}</td>
-                        <td>${results.end_date}</td>
-                        <td>${results.mae}</td>
-                        <td>${results.rmse}</td>
-                        <td>${results.mape}</td>
-                        <td>${results.r2}</td>
-                    </tr>
-                `;
-
-                // Display plot (assuming results.plot_html is sent as part of the WebSocket data)
-                plotContainer.innerHTML = results.plot_html;
-            }
         });
     </script>
 </body>

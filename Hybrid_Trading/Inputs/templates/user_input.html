@@ -1,137 +1,29 @@
+<!-- templates/user_input.html -->
 {% extends "base.html" %}
-{% load static %}
+{% load crispy_forms_tags %}
 
 {% block title %}User Input{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Select Your Preferences</h2>
-    <form id="user-input-form" class="needs-validation" novalidate>
+    <h2 class="text-center mb-4" data-aos="fade-up">Select Your Preferences</h2>
+    <form id="user-input-form" method="post" class="needs-validation" novalidate data-aos="fade-in">
         {% csrf_token %}
-
-        <!-- Mode Selection -->
-        <div class="form-group text-center">
-            <label for="mode">Select a mode:</label>
-            <select class="form-control rounded-pill text-center" id="mode" name="mode" required>
-                <option value="" disabled selected>Select</option>
-                <option value="full_run">Full Run</option>
-                <option value="backtester">Backtester</option>
-                <option value="day_trader">Day Trader</option>
-                <option value="sentiment_analysis">Sentiment Analysis</option>
-            </select>
-            <div class="invalid-feedback">
-                Please select a mode.
-            </div>
-        </div>
-
-        <!-- Start Date -->
-        <div class="form-group text-center">
-            <label for="start_date">Start Date:</label>
-            <input type="date" class="form-control rounded-pill text-center" id="start_date" name="start_date" required>
-            <div class="invalid-feedback">
-                Please provide a valid start date.
-            </div>
-        </div>
-
-        <!-- End Date -->
-        <div class="form-group text-center">
-            <label for="end_date">End Date:</label>
-            <input type="date" class="form-control rounded-pill text-center" id="end_date" name="end_date" required>
-            <div class="invalid-feedback">
-                Please provide a valid end date.
-            </div>
-        </div>
-
-        <!-- Percentage Selection -->
-        <div class="form-group text-center">
-            <label for="percentage">Select the percentage of symbols to process:</label>
-            <select class="form-control rounded-pill text-center" id="percentage" name="percentage" required>
-                <option value="" disabled selected>Select</option>
-                <option value="1">1%</option>
-                <option value="5%">5%</option>
-                <option value="10">10%</option>
-                <option value="25">25%</option>
-                <option value="50">50%</option>
-                <option value="75">75%</option>
-                <option value="100">100%</option>
-            </select>
-            <div class="invalid-feedback">
-                Please select a percentage.
-            </div>
-        </div>
-
-        <!-- Interval Selection -->
-        <div class="form-group text-center">
-            <label for="interval">Select the interval:</label>
-            <select class="form-control rounded-pill text-center" id="interval" name="interval">
-                <option value="" disabled selected>Select</option>
-                <option value="1min">1 minute</option>
-                <option value="5min">5 minutes</option>
-                <option value="15min">15 minutes</option>
-                <option value="30min">30 minutes</option>
-                <option value="60min">60 minutes</option>
-                <option value="1h">1 hour</option>
-                <option value="1d">1 day</option>
-            </select>
-        </div>
-
-        <!-- Period Selection -->
-        <div class="form-group text-center">
-            <label for="period">Select the period:</label>
-            <select class="form-control rounded-pill text-center" id="period" name="period">
-                <option value="" disabled selected>Select</option>
-                <option value="D">Daily</option>
-                <option value="W">Weekly</option>
-                <option value="h">Hourly</option>
-            </select>
-        </div>
-
-        <!-- Sentiment Type Selection -->
-        <div class="form-group text-center">
-            <label for="sentiment_type">Select the sentiment type:</label>
-            <select class="form-control rounded-pill text-center" id="sentiment_type" name="sentiment_type">
-                <option value="" disabled selected>Select</option>
-                <option value="bullish">Bullish</option>
-                <option value="bearish">Bearish</option>
-                <option value="neutral">Neutral</option>
-            </select>
-        </div>
-
-        <!-- Handle Missing Values -->
-        <div class="form-group text-center">
-            <label for="handle_missing_values">Select how to handle missing values:</label>
-            <select class="form-control rounded-pill text-center" id="handle_missing_values" name="handle_missing_values">
-                <option value="" disabled selected>Select</option>
-                <option value="drop">Drop</option>
-                <option value="fill">Fill</option>
-                <option value="interpolate">Interpolate</option>
-            </select>
-        </div>
-
-        <!-- Fillna Method -->
-        <div class="form-group text-center">
-            <label for="fillna_method">Select the fillna method:</label>
-            <select class="form-control rounded-pill text-center" id="fillna_method" name="fillna_method">
-                <option value="" disabled selected>Select</option>
-                <option value="mean">Mean</option>
-                <option value="median">Median</option>
-                <option value="zero">Zero</option>
-            </select>
-        </div>
+        {{ form|crispy }}
 
         <!-- Submit Button -->
-        <div class="text-center">
-            <button type="submit" class="btn btn-primary rounded-pill px-5">Submit</button>
-        </div>
+        <button type="submit" class="btn btn-primary mt-3" data-aos="zoom-in">
+            <i class="fas fa-paper-plane"></i> Submit
+        </button>
     </form>
 
     <!-- Confirmation Message -->
-    <div id="confirmation-message" style="display: none;" class="alert alert-success text-center mt-4">
+    <div id="confirmation-message" style="display: none;" class="alert alert-success text-center mt-4" data-aos="fade-down">
         Your request has been received and is being processed.
     </div>
 
     <!-- Progress Bar -->
-    <div id="progress-bar-container" style="display: none;" class="mt-4">
+    <div id="progress-bar-container" style="display: none;" class="mt-4" data-aos="fade-up">
         <div class="progress">
             <div id="progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                  style="width: 0%;" aria-valuenow="0"
@@ -143,9 +35,8 @@
 </div>
 {% endblock %}
 
-{% block scripts %}
+{% block extra_scripts %}
 <script>
-    // WebSocket handling for real-time progress tracking
     document.addEventListener('DOMContentLoaded', function () {
         const form = document.getElementById('user-input-form');
         const confirmationMessage = document.getElementById('confirmation-message');
@@ -153,59 +44,56 @@
         const progressBar = document.getElementById('progress-bar');
         const progressMessage = document.getElementById('progress-message');
 
-        // WebSocket initialization
-        const websocket = new WebSocket(
-            'ws://' + window.location.host +
-            '/ws/user-input/'  // Ensure this matches your routing.py WebSocket URL pattern
-        );
+        // Initialize WebSocket
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const ws = new WebSocket(wsProtocol + '://' + window.location.host + '/ws/user-input/');
 
-        websocket.onopen = function () {
+        ws.onopen = function () {
             console.log('WebSocket connection established.');
         };
 
-        websocket.onmessage = function (e) {
+        ws.onmessage = function (e) {
             const data = JSON.parse(e.data);
 
-            // Handle progress updates
             if (data.progress !== undefined && data.message !== undefined) {
-                // Update progress bar
                 progressBar.style.width = data.progress + '%';
                 progressBar.setAttribute('aria-valuenow', data.progress);
                 progressBar.innerText = data.progress + '%';
                 progressMessage.innerText = data.message;
             }
 
-            // Handle completion message
             if (data.status === 'completed') {
                 progressMessage.innerText = data.message;
-                // Optionally, redirect to dashboard after a short delay
                 setTimeout(function () {
                     window.location.href = "/dashboard/";
                 }, 2000);
             }
 
-            // Handle error message
             if (data.status === 'error') {
                 progressBar.style.width = '100%';
-                progressBar.setAttribute('aria-valuenow', 100);
                 progressBar.classList.remove('progress-bar-striped', 'progress-bar-animated');
                 progressBar.classList.add('bg-danger');
                 progressBar.innerText = 'Error';
                 progressMessage.innerText = data.message;
-                // Re-enable the submit button
                 form.querySelector('button[type="submit"]').disabled = false;
             }
         };
 
-        websocket.onclose = function (e) {
+        ws.onclose = function (e) {
             console.error('WebSocket connection closed unexpectedly.');
         };
 
         // Form submission
         form.addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent default form submission
+            event.preventDefault();
 
-            // Disable the submit button to prevent multiple submissions
+            // Validate form
+            if (!form.checkValidity()) {
+                event.stopPropagation();
+                form.classList.add('was-validated');
+                return;
+            }
+
             form.querySelector('button[type="submit"]').disabled = true;
 
             // Show confirmation message and progress bar
@@ -230,7 +118,7 @@
             };
 
             // Send data to WebSocket
-            websocket.send(JSON.stringify(formData));
+            ws.send(JSON.stringify(formData));
         });
     });
 </script>

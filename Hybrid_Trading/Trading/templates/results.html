@@ -189,7 +189,7 @@
             // WebSocket connection
             const websocket = new WebSocket('ws://' + window.location.host + '/ws/chart-data/');
 
-            websocket.onopen = function () {
+            ws.onopen = function () {
                 console.log('WebSocket connection established.');
             };
 
