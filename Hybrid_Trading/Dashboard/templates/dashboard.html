@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container mt-5">
+    <h2>Dashboard</h2>
+
+    <!-- Model Performance Chart -->
+    <div class="card mb-4">
+      <h3>Model Performance</h3>
+      <div id="performance_metrics_chart">
+        {% if performance_metrics_chart %}
+          {{ performance_metrics_chart|safe }}
+        {% else %}
+          <p>No performance metrics data available.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Predictions vs Actuals Chart -->
+    <div class="card mb-4">
+      <h3>Predictions vs Actuals</h3>
+      <div id="predictions_vs_actuals_chart">
+        {% if predictions_vs_actuals_chart %}
+          {{ predictions_vs_actuals_chart|safe }}
+        {% else %}
+          <p>No predictions vs actuals data available.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Backtest Results Chart -->
+    <div class="card mb-4">
+      <h3>Backtest Results</h3>
+      <div id="backtest_trade_logs_chart">
+        {% if backtest_trade_logs_chart %}
+          {{ backtest_trade_logs_chart|safe }}
+        {% else %}
+          <p>No backtest trade logs available.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Cross-Referenced Data Table -->
+    <div class="card mb-4">
+      <h3>Cross-Referenced Data</h3>
+      {% if cross_referenced_data_html %}
+        {{ cross_referenced_data_html|safe }}
+      {% else %}
+        <p>No cross-referenced data available.</p>
+      {% endif %}
+    </div>
+
+    <!-- Trade Logs Table -->
+    <div class="card mb-4">
+      <h3>Trade Logs</h3>
+      {% if trade_logs_html %}
+        {{ trade_logs_html|safe }}
+      {% else %}
+        <p>No trade logs available.</p>
+      {% endif %}
+    </div>
+
+    <!-- Performance Metrics Table -->
+    <div class="card mb-4">
+      <h3>Performance Metrics</h3>
+      {% if performance_metrics_html %}
+        {{ performance_metrics_html|safe }}
+      {% else %}
+        <p>No performance metrics data available.</p>
+      {% endif %}
+    </div>
+
+    <!-- Signals Table -->
+    <div class="card mb-4">
+      <h3>Signals</h3>
+      {% if signals_html %}
+        {{ signals_html|safe }}
+      {% else %}
+        <p>No signals available.</p>
+      {% endif %}
+    </div>
+
+    <!-- Optional: Additional Tables -->
+    {# 
+    <div class="card mb-4">
+      <h3>Model Performance Data</h3>
+      {% if model_performance_data_html %}
+        {{ model_performance_data_html|safe }}
+      {% else %}
+        <p>No model performance data available.</p>
+      {% endif %}
+    </div>
+
+    <div class="card mb-4">
+      <h3>Trade Signal Data</h3>
+      {% if trade_signal_data_html %}
+        {{ trade_signal_data_html|safe }}
+      {% else %}
+        <p>No trade signal data available.</p>
+      {% endif %}
+    </div>
+
+    <div class="card mb-4">
+      <h3>Backtest Results</h3>
+      {% if backtest_results_html %}
+        {{ backtest_results_html|safe }}
+      {% else %}
+        <p>No backtest results available.</p>
+      {% endif %}
+    </div>
+    #}
+  </div>
+
+  <script>
+    // Plotly JS settings for zoom and tooltips for responsiveness
+    function updateChartLayout(chartId) {
+      var chartElement = document.getElementById(chartId);
+      if (chartElement) {
+        Plotly.relayout(chartId, {
+          'autosize': true,
+          'xaxis': {
+            'automargin': true,
+            'showline': true,
+            'zeroline': false
+          },
+          'yaxis': {
+            'automargin': true,
+            'showline': true,
+            'zeroline': false
+          }
+        });
+      }
+    }
+
+    window.addEventListener("resize", function() {
+      updateChartLayout("performance_metrics_chart");
+      updateChartLayout("predictions_vs_actuals_chart");
+      updateChartLayout("backtest_trade_logs_chart");
+    });
+
+    updateChartLayout("performance_metrics_chart");
+    updateChartLayout("predictions_vs_actuals_chart");
+    updateChartLayout("backtest_trade_logs_chart");
+  </script>
+{% endblock %}

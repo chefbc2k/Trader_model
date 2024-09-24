@@ -1,0 +1,255 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results, Stock Details, and Charts</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Chart.js, Plotly, and Bokeh -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.bokeh.org/bokeh/release/bokeh-2.4.0.min.js"></script>
+
+    <style>
+        .chart-box, .results-box, .stock-details-box {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            margin-bottom: 20px;
+        }
+
+        .scrollable {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .box-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .json-data {
+            white-space: pre-wrap;
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="bg-dark text-white py-3">
+        <div class="container">
+            <h1 class="text-center">Results, Stock Details, and Charts</h1>
+        </div>
+    </header>
+
+    <main class="container mt-4">
+        <!-- Dropdowns for selecting X/Y axis and chart type -->
+        <div class="row">
+            <div class="col-md-4">
+                <label for="x-axis">X-axis</label>
+                <select id="x-axis" class="form-control">
+                    <option value="dates">Dates</option>
+                    <option value="symbols">Stock Symbols</option>
+                    <option value="volume">Volume</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="y-axis">Y-axis</label>
+                <select id="y-axis" class="form-control">
+                    <option value="prices">Prices</option>
+                    <option value="orders">Orders</option>
+                    <option value="volume">Volume</option>
+                </select>
+            </div>
+
+            <div class="col-md-4">
+                <label for="chart-type">Chart Type</label>
+                <select id="chart-type" class="form-control">
+                    <option value="bar">Bar</option>
+                    <option value="line">Line</option>
+                    <option value="scatter">Scatter</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-box mt-4">
+            <h3 class="box-title">Chart (Chart.js)</h3>
+            <canvas id="myChart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="row">
+            <!-- Results Section -->
+            <div class="col-md-6">
+                <div class="results-box scrollable">
+                    <h3 class="box-title">Execution Results</h3>
+                    {% if table_data %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                {% for header in table_data.headers %}
+                                <th>{{ header }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in table_data.rows %}
+                            <tr>
+                                {% for cell in row %}
+                                <td>{{ cell }}</td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No table data available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Stock Details Section -->
+            <div class="col-md-6">
+                <div class="stock-details-box scrollable">
+                    <h3 class="box-title">Stock Details for {{ ticker }}</h3>
+                    <div id="plotly-chart" style="width:100%;height:300px;"></div>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function () {
+                            var data = {{ stock_data|safe }};
+                            var layout = {
+                                title: 'Stock Data for {{ ticker }}',
+                                xaxis: { title: 'Date', showgrid: false, zeroline: false },
+                                yaxis: { title: 'Price', showline: false },
+                                margin: { l: 40, r: 30, t: 40, b: 30 },
+                                plot_bgcolor: "#f4f4f9",
+                                paper_bgcolor: "#ffffff",
+                                font: {
+                                    family: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+                                    size: 14,
+                                    color: "#333333"
+                                }
+                            };
+                            Plotly.newPlot('plotly-chart', data, layout, { responsive: true });
+                        });
+                    </script>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Raw JSON Data Section -->
+            <div class="col-12">
+                <div class="json-data">
+                    <h3 class="box-title">Raw JSON Data</h3>
+                    <pre>{{ json_data|safe }}</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Bokeh Chart Section -->
+            <div class="col-12 chart-box">
+                <h3 class="box-title">Performance Chart (Bokeh)</h3>
+                <div id="bokeh-chart"></div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        Bokeh.embed.embed_item({{ bokeh_script|safe }}, "bokeh-chart");
+                    });
+                </script>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-dark text-white text-center py-3">
+        <div class="container">
+            <p>&copy; 2024 My Trading App</p>
+        </div>
+    </footer>
+
+    <script>
+        // Dynamic Chart.js Chart with WebSocket
+        document.addEventListener('DOMContentLoaded', function () {
+            const xSelect = document.getElementById('x-axis');
+            const ySelect = document.getElementById('y-axis');
+            const chartTypeSelect = document.getElementById('chart-type');
+            const ctx = document.getElementById('myChart').getContext('2d');
+            let myChart;
+
+            // WebSocket connection
+            const websocket = new WebSocket('ws://' + window.location.host + '/ws/chart-data/');
+
+            websocket.onopen = function () {
+                console.log('WebSocket connection established.');
+            };
+
+            websocket.onmessage = function (e) {
+                const data = JSON.parse(e.data);
+
+                if (myChart) {
+                    myChart.destroy();
+                }
+
+                // Create new chart
+                myChart = new Chart(ctx, {
+                    type: chartTypeSelect.value,
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            label: `${ySelect.value}`,
+                            data: data.values,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            x: { beginAtZero: true },
+                            y: { beginAtZero: true }
+                        },
+                        plugins: {
+                            zoom: {
+                                zoom: {
+                                    enabled: true,
+                                    mode: 'x'
+                                }
+                            }
+                        }
+                    }
+                });
+            };
+
+            // Send updated data to WebSocket when dropdowns change
+            function sendDataToWebSocket() {
+                const chartParams = {
+                    x_axis: xSelect.value,
+                    y_axis: ySelect.value,
+                    chart_type: chartTypeSelect.value
+                };
+                websocket.send(JSON.stringify(chartParams));
+            }
+
+            // Event listeners for dropdown changes
+            xSelect.addEventListener('change', sendDataToWebSocket);
+            ySelect.addEventListener('change', sendDataToWebSocket);
+            chartTypeSelect.addEventListener('change', sendDataToWebSocket);
+
+            // Initial fetch
+            sendDataToWebSocket();
+        });
+    </script>
+</body>
+
+</html>

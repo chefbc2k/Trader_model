@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    Strategy Results
+{% endblock %}
+
+{% block content %}
+    <h1>Strategy Results</h1>
+
+    <!-- Form to select strategy and ticker -->
+    <form method="GET" action="{% url 'strategy:strategy_results' %}">
+        {{ form.as_p }}
+        <button type="submit">View Results</button>
+    </form>
+
+    <!-- Display the strategy results if available -->
+    {% if strategy_name and ticker %}
+        <h2>Results for {{ strategy_name }} Strategy - {{ ticker }}</h2>
+        <p><strong>Action:</strong> {{ action|default:"N/A" }}</p>
+        <p><strong>Reason:</strong> {{ reason|default:"N/A" }}</p>
+        <p><strong>Current Price:</strong> {{ current_price|default:"N/A" }}</p>
+
+        {% if predicted_price %}
+            <p><strong>Predicted Price:</strong> {{ predicted_price|default:"N/A" }}</p>
+        {% endif %}
+        
+        <h3>Key Indicators</h3>
+        <p><strong>RSI:</strong> {{ rsi|default:"N/A" }}</p>
+        <p><strong>Moving Average (20-day):</strong> {{ moving_average|default:"N/A" }}</p>
+        <p><strong>Bollinger Bands:</strong> Upper: {{ bollinger_upper|default:"N/A" }}, Lower: {{ bollinger_lower|default:"N/A" }}</p>
+        
+        <h3>Risk Management</h3>
+        <p><strong>Stop Loss Level:</strong> {{ stop_loss_level|default:"N/A" }}</p>
+        <p><strong>Take Profit Level:</strong> {{ take_profit_level|default:"N/A" }}</p>
+
+        <h3>Sentiment Analysis</h3>
+        <p><strong>Sentiment Score:</strong> {{ sentiment_score|default:"N/A" }}</p>
+
+        <h3>Past Trades</h3>
+        <ul>
+            <li>Buy at {{ past_trade_buy_price|default:"N/A" }} on {{ past_trade_buy_date|default:"N/A" }}</li>
+            <li>Sell at {{ past_trade_sell_price|default:"N/A" }} on {{ past_trade_sell_date|default:"N/A" }}</li>
+        </ul>
+
+        <h3>Trading Signals</h3>
+        <ul>
+            <li>{{ signal_1|default:"N/A" }}: Buy at {{ signal_1_price|default:"N/A" }}</li>
+            <li>{{ signal_2|default:"N/A" }}: Sell at {{ signal_2_price|default:"N/A" }}</li>
+        </ul>
+
+        <h3>Market Conditions</h3>
+        <p><strong>Current Volume:</strong> {{ current_volume|default:"N/A" }}</p>
+        <p><strong>Bid-Ask Spread:</strong> {{ bid_ask_spread|default:"N/A" }}</p>
+
+        <h3>Benchmark Comparison</h3>
+        <p><strong>S&P 500 Performance:</strong> {{ sp500_performance|default:"N/A" }}%</p>
+        <p><strong>Strategy Performance:</strong> {{ strategy_performance|default:"N/A" }}%</p>
+    {% else %}
+        <p>Please select a strategy and ticker to view results.</p>
+    {% endif %}
+{% endblock %}

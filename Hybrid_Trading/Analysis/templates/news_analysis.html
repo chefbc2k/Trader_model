@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Classified News for {{ ticker }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Classified News for {{ ticker }}</h1>
+
+    <!-- Display a message if there is no news data -->
+    {% if news_data %}
+        <h2>News Articles</h2>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Published Date</th>
+                    <th>Title</th>
+                    <th>Text</th>
+                    <th>URL</th>
+                    <th>Sentiment</th>
+                    <th>Sentiment Score</th>
+                    <th>Weighted Sentiment</th>
+                    <th>Keywords</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for article in news_data %}
+                <tr>
+                    <td>{{ article.publishedDate|default:"N/A" }}</td>
+                    <td>{{ article.title|default:"No title available" }}</td>
+                    <td>{{ article.text|truncatewords:30|default:"No text available" }}</td>
+                    <td><a href="{{ article.url }}" target="_blank">{{ article.url|default:"N/A" }}</a></td>
+                    <td>{{ article.sentiment.classification|default:"Unknown" }}</td>
+                    <td>{{ article.sentimentScores.compound|default:"N/A" }}</td>
+                    <td>{{ article.weightedSentiment|default:"N/A" }}</td>
+                    <td>{{ article.keywords|join:", "|default:"No keywords available" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert alert-warning text-center">No news articles available for {{ ticker }}.</p>
+    {% endif %}
+
+    <!-- Display a message if there is no stock score data -->
+    {% if stock_scores %}
+        <h2>Stock Scores</h2>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Average Sentiment Score</th>
+                    <th>Number of Articles</th>
+                    <th>Final Signal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticker, score_data in stock_scores.items %}
+                <tr>
+                    <td>{{ ticker }}</td>
+                    <td>{{ score_data.average_score|default:"N/A" }}</td>
+                    <td>{{ score_data.articles|default:"N/A" }}</td>
+                    <td>{{ score_data.news_final_signal.signal|default:"N/A" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="alert alert-warning text-center">No stock scores available for {{ ticker }}.</p>
+    {% endif %}
+</div>
+{% endblock %}

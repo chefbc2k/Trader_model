@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Model Trainer Configuration</title>
+
+    <!-- Load static files in Django -->
+    {% load static %}
+    
+    <!-- Link to CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        /* CSS content remains unchanged */
+    </style>
+</head>
+<body>
+    <!-- Navigation link back to the home page (Web Application Index) -->
+    <div class="navigation-link">
+        <a href="{% url 'web_interface:index' %}">Home</a>
+    </div>
+
+    <!-- Model Trainer Configuration Form -->
+    <h1>Model Trainer Configuration</h1>
+    <form id="model-trainer-form">
+        {% csrf_token %}
+        
+        <!-- Dynamic Form Fields -->
+        {{ form.as_p }}
+        
+        <button type="submit">Start Model Training</button>
+    </form>
+
+    <!-- Progress Bar -->
+    <div id="progress-container">
+        <div id="progress-bar">0%</div>
+    </div>
+
+    <!-- Log Section -->
+    <div id="log-section" class="log-section">
+        <h2>Training Logs</h2>
+        <pre id="training-log"></pre>
+    </div>
+
+    <!-- Results Section -->
+    <div id="results-section" style="display:none;">
+        <h2>Model Training Results</h2>
+        
+        <!-- Table for displaying results dynamically -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Model Type</th>
+                    <th>Feature Selection</th>
+                    <th>Optimization Method</th>
+                    <th>Start Date</th>
+                    <th>End Date</th>
+                    <th>MAE</th>
+                    <th>RMSE</th>
+                    <th>MAPE</th>
+                    <th>R-Squared</th>
+                </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+        
+        <!-- Plot Section (Plotly, Bokeh, etc.) -->
+        <div class="plot-section">
+            <h2>Model Performance Plots</h2>
+            <div id="plot-container"></div>
+        </div>
+    </div>
+
+    <!-- WebSocket-based form handling script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.getElementById('model-trainer-form');
+            const progressBarContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const trainingLog = document.getElementById('training-log');
+            const resultsSection = document.getElementById('results-section');
+            const resultsBody = document.getElementById('results-body');
+            const plotContainer = document.getElementById('plot-container');
+
+            // WebSocket initialization
+            const websocket = new WebSocket(
+                'ws://' + window.location.host + '/ws/orchestration/'  // Ensure this matches your routing.py WebSocket URL pattern
+            );
+
+            websocket.onopen = function () {
+                console.log('WebSocket connection established.');
+            };
+
+            websocket.onmessage = function (e) {
+                const data = JSON.parse(e.data);
+
+                // Handle progress updates
+                if (data.progress !== undefined) {
+                    progressBar.style.width = data.progress + '%';
+                    progressBar.innerText = data.progress + '%';
+                }
+
+                // Handle logs
+                if (data.logs) {
+                    trainingLog.textContent = data.logs;
+                }
+
+                // Handle results
+                if (data.results) {
+                    displayResults(data.results);
+                }
+            };
+
+            websocket.onclose = function () {
+                console.error('WebSocket connection closed unexpectedly.');
+            };
+
+            // Form submission
+            form.addEventListener('submit', function (event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Show progress bar and reset logs
+                progressBarContainer.style.display = 'block';
+                progressBar.style.width = '0%';
+                progressBar.innerText = '0%';
+                trainingLog.textContent = '';
+
+                // Collect form data
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => data[key] = value);
+
+                // Send form data via WebSocket
+                websocket.send(JSON.stringify(data));
+            });
+
+            function displayResults(results) {
+                resultsSection.style.display = 'block';
+
+                // Populate results table
+                resultsBody.innerHTML = `
+                    <tr>
+                        <td>${results.model_type}</td>
+                        <td>${results.feature_selection_method}</td>
+                        <td>${results.optimization_method}</td>
+                        <td>${results.start_date}</td>
+                        <td>${results.end_date}</td>
+                        <td>${results.mae}</td>
+                        <td>${results.rmse}</td>
+                        <td>${results.mape}</td>
+                        <td>${results.r2}</td>
+                    </tr>
+                `;
+
+                // Display plot (assuming results.plot_html is sent as part of the WebSocket data)
+                plotContainer.innerHTML = results.plot_html;
+            }
+        });
+    </script>
+</body>
+</html>

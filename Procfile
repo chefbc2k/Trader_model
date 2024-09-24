@@ -1,0 +1,2 @@
+web: NEW_RELIC_CONFIG_FILE=newrelic.ini newrelic-admin run-program gunicorn myapp.wsgi
+worker: NEW_RELIC_CONFIG_FILE=newrelic.ini newrelic-admin run-program celery -A celery_config worker --loglevel=info --concurrency=${CELERYD_CONCURRENCY}

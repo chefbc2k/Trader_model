@@ -1,0 +1,126 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RIKC Trading App</title>
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'web_interface/css/styles.css' %}">
+
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #2e2e2e; /* Darker shade to blend with the logo */
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        /* Adjust logo size to be more proportionate and centered */
+        .logo-container img {
+            width: 100%;
+            max-width: 1000px; /* Cap logo size for larger screens */
+            height: auto;
+            position: relative;
+        }
+
+        /* Adjust button positioning over the logo */
+        .btn-container {
+            position: absolute;
+            top: 50%; /* Position buttons relative to logo */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 300px; /* Limit button container width */
+        }
+
+        .action-btn {
+            background-color: rgba(170, 170, 170, 0.8); /* Light gray with some transparency */
+            color: white;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 8px;
+            text-transform: uppercase;
+            font-weight: 600;
+            border: none;
+            transition: background-color 0.3s ease;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background-color: rgba(150, 150, 150, 0.9);
+        }
+
+        footer {
+            background-color: #2e2e2e;
+            color: white;
+            text-align: center;
+            padding: 20px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        @media (max-width: 768px) {
+            .btn-container {
+                top: 65%; /* Adjust position for smaller screens */
+            }
+
+            .action-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Main Content -->
+    <div class="logo-container">
+        <!-- Logo Image -->
+        <img src="{% static 'web_interface/img/RL_logo.png' %}" alt="RIKC Trading Logo" />
+    </div>
+
+    <!-- Action Buttons Container -->
+    <div class="btn-container">
+        <!-- Start Trading Bot -->
+        <a href="{% url 'inputs:user_input' %}" class="action-btn">Start Trading Bot</a>
+
+        <!-- Model Trainer -->
+        <a href="{% url 'model_trainer:orchestration_form' %}" class="action-btn">Start Model Trainer</a>
+
+        <!-- Forecaster -->
+        <a href="{% url 'forecaster:forecast' %}" class="action-btn">Start Forecaster</a>
+
+        <!-- Backtester -->
+        <a href="{% url 'backtester:run_backtest' %}" class="action-btn">Start Backtester</a>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 RIKC Trading App</p>
+    </footer>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Portfolio{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Your Portfolio</h2>
+
+    <!-- Section for Purchased Stocks -->
+    <div class="portfolio-section mt-4">
+        <h3>Purchased Stocks</h3>
+        {% if purchased %}
+            <ul class="list-group">
+                {% for ticker, details in purchased.items %}
+                    <li class="list-group-item">
+                        {{ ticker }} - {{ details.Quantity }} shares @ ${{ details.Close }} (Bought on {{ details.Date }})
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No stocks purchased yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Section for Sold Stocks -->
+    <div class="portfolio-section mt-4">
+        <h3>Sold Stocks</h3>
+        {% if sold %}
+            <ul class="list-group">
+                {% for ticker, details in sold.items %}
+                    <li class="list-group-item">
+                        {{ ticker }} - {{ details.Quantity }} shares sold @ ${{ details.Close }} (Sold on {{ details.Date }})
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No stocks sold yet.</p>
+        {% endif %}
+    </div>
+
+    <!-- Section for Transaction History -->
+    <div class="portfolio-section mt-4">
+        <h3>Transaction History</h3>
+        {% if transaction_history %}
+            <ul class="list-group">
+                {% for transaction in transaction_history %}
+                    <li class="list-group-item">
+                        {{ transaction.date }} - {{ transaction.type|capfirst }} {{ transaction.quantity }} shares of {{ transaction.symbol }} @ ${{ transaction.price }}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No transaction history available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Section for Account Summary -->
+    <div class="portfolio-section mt-4">
+        <h3>Account Summary</h3>
+        <p>Account Value: ${{ account_value }}</p>
+        <p>Buying Power: ${{ buying_power }}</p>
+    </div>
+
+    <!-- Section for Trade Execution Form -->
+    <div class="portfolio-section mt-4">
+        <h3>Execute a Trade</h3>
+        <form id="trade-execution-form">
+            <div class="form-group">
+                <label for="ticker">Ticker Symbol</label>
+                <input type="text" class="form-control" id="ticker" name="ticker" required>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Quantity</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" required>
+            </div>
+            <div class="form-group">
+                <label for="price">Price</label>
+                <input type="number" class="form-control" id="price" name="price" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="action">Action</label>
+                <select class="form-control" id="action" name="action" required>
+                    <option value="buy">Buy</option>
+                    <option value="sell">Sell</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Execute Trade</button>
+        </form>
+
+        <!-- Display success or error messages -->
+        <div id="trade-message" class="mt-3"></div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('trade-execution-form');
+        const messageDiv = document.getElementById('trade-message');
+
+        // Initialize WebSocket connection
+        const websocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/portfolio/'  // WebSocket URL (make sure it matches your routing)
+        );
+
+        websocket.onopen = function () {
+            console.log('WebSocket connection established.');
+        };
+
+        websocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+
+            // Handle success or error messages
+            if (data.status === 'success') {
+                messageDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            } else if (data.status === 'error') {
+                messageDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        };
+
+        websocket.onclose = function () {
+            console.error('WebSocket connection closed unexpectedly.');
+        };
+
+        // Handle form submission via WebSocket
+        form.addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form from submitting normally
+
+            // Gather form data
+            const formData = {
+                ticker: form.ticker.value,
+                quantity: form.quantity.value,
+                price: form.price.value,
+                action: form.action.value
+            };
+
+            // Send form data through WebSocket
+            websocket.send(JSON.stringify(formData));
+        });
+    });
+</script>
+{% endblock %}

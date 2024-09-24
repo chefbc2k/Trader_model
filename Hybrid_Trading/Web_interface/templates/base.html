@@ -1,0 +1,106 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trading Platform{% endblock %}</title>
+
+    <!-- External CSS (e.g., Bootstrap) -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    
+    <!-- Static CSS -->
+    <link rel="stylesheet" href="{% static 'web_interface/css/styles.css' %}">
+    
+    <style>
+        body {
+            background-image: url("{% static 'web_interface/img/RL_logo.png' %}"); /* New background image */
+            background-size: cover; /* Ensures the image covers the entire background */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+            background-attachment: fixed; /* Keeps the background fixed while scrolling */
+        }
+
+        /* Optional styling for better contrast with background */
+        header, footer {
+            background-color: rgba(0, 0, 0, 0.7); /* Transparent black */
+            color: white;
+        }
+        
+        /* Adjust navbar link styling */
+        .navbar-nav .nav-link {
+            color: white !important;
+        }
+
+        /* Optional: Style the main content area for better readability */
+        main.container {
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <!-- Navbar Brand -->
+                <a class="navbar-brand" href="{% url 'web_interface:index' %}">Home</a>
+                
+                <!-- Navbar Toggler for Mobile View -->
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                
+                <!-- Navbar Links -->
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        <!-- Home Link -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'web_interface:index' %}">Home</a>
+                        </li>
+                        
+                        <!-- Portfolio Link -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'trading:portfolio' %}">Portfolio</a>
+                        </li>
+                        
+                        <!-- User Input Link -->
+                        <li class="nav-item">
+                            <a class="nav-link" href="{% url 'inputs:user_input' %}">User Input</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    
+    <main class="container mt-4">
+        {% block content %}
+        {% endblock %}
+    </main>
+    
+    <footer class="bg-dark text-white text-center py-3">
+        <div class="container">
+            <p>&copy; 2024 Trading Platform</p>
+        </div>
+    </footer>
+    
+    <!-- External JavaScript Libraries (e.g., jQuery, Popper.js, Bootstrap) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" 
+            integrity="sha384-DfXdkaN0dgbrPCzz8flja7o5nFO9UnXExFOIn7j4cYJGF9o2jhqe4xfVx2g9vDrK" 
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" 
+            integrity="sha384-IQsoLXl3aNQ+34eSVSRbZGvHlIAtkn5Dffl7GH0dK68J4LckCVDvhuAJWJQ3WWG2" 
+            crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" 
+            integrity="sha384-B4gt1jrGC7Jh4AgfBJiTvbg/sjILTIoGpFUYVjR54e9BiGzDFBsgx4a1WZV2Q8V1" 
+            crossorigin="anonymous"></script>
+    
+    <!-- Static JavaScript -->
+    {% block scripts %}
+    <!-- Child templates can inject additional scripts here -->
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,272 @@
+{% extends "base.html" %}
+{% load static %}
+<img src="{% static 'img/RL_logo.png' %}" alt="Logo">
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(to bottom, #d3d3d3, white);
+        font-family: Arial, sans-serif;
+    }
+
+    #backtest-form {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        background-color: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-title {
+        text-align: center;
+        font-size: 24px;
+        margin-bottom: 20px;
+        color: #333;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+        color: #333;
+    }
+
+    .form-group select, .form-group input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    .form-group select:focus, .form-group input:focus {
+        outline: none;
+        border-color: #777;
+    }
+
+    .form-check-group {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .form-check-group div {
+        display: flex;
+        align-items: center;
+    }
+
+    .form-check-group input[type="checkbox"] {
+        margin-right: 5px;
+    }
+
+    #submit-button {
+        width: 100%;
+        padding: 10px;
+        background-color: #28a745;
+        border: none;
+        border-radius: 5px;
+        color: white;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 20px;
+    }
+
+    #submit-button:hover {
+        background-color: #218838;
+    }
+
+    #progress-section {
+        text-align: center;
+        margin-top: 30px;
+    }
+
+    #progress-bar-container {
+        margin: 20px auto;
+        width: 100%;
+        max-width: 500px;
+    }
+
+    /* Header and Footer styling */
+    .header, .footer {
+        background-color: #333;
+        padding: 10px 0;
+        text-align: center;
+        color: white;
+    }
+
+    .header img {
+        max-width: 150px;
+    }
+
+    .footer img {
+        max-width: 80px;
+        margin-bottom: 10px;
+    }
+
+    .footer p {
+        margin: 5px;
+        font-size: 14px;
+        color: #ccc;
+    }
+</style>
+
+<!-- Header with Logo -->
+<div class="header">
+    <img src="{% static 'img/RL_logo.png' %}" alt="Logo">
+</div>
+
+<!-- Main Content (Form) -->
+<div id="backtest-form">
+    <div class="form-title">Run Your Backtest</div>
+    <form id="form" method="post">
+        {% csrf_token %}
+
+        <!-- Start Date -->
+        <div class="form-group">
+            <label for="id_start_date">Start Date</label>
+            {{ form.start_date }}
+        </div>
+
+        <!-- End Date -->
+        <div class="form-group">
+            <label for="id_end_date">End Date</label>
+            {{ form.end_date }}
+        </div>
+
+        <!-- Percentage Tickers -->
+        <div class="form-group">
+            <label for="id_percentage_tickers">Percentage of Tickers to Backtest</label>
+            {{ form.percentage_tickers }}
+        </div>
+
+        <!-- Data Granularity -->
+        <div class="form-group">
+            <label for="id_granularity">Data Granularity</label>
+            {{ form.granularity }}
+        </div>
+
+        <!-- Time Series Interval -->
+        <div class="form-group">
+            <label for="id_time_interval">Time Series Interval</label>
+            {{ form.time_interval }}
+        </div>
+
+        <!-- Strategy -->
+        <div class="form-group">
+            <label for="id_strategy">Trading Strategy</label>
+            {{ form.strategy }}
+        </div>
+
+        <!-- Strategy Parameters -->
+        <div class="form-group">
+            <label for="id_strategy_parameters">Strategy Parameters</label>
+            {{ form.strategy_parameters }}
+        </div>
+
+        <!-- Output Options -->
+        <div class="form-group">
+            <label for="id_output_options">Output Options</label>
+            {{ form.output_options }}
+        </div>
+
+        <!-- Risk Management Parameters -->
+        <div class="form-group">
+            <label for="id_risk_management">Risk Management Parameters</label>
+            {{ form.risk_management }}
+        </div>
+
+        <!-- Benchmark -->
+        <div class="form-group">
+            <label for="id_benchmark">Benchmark Index</label>
+            {{ form.benchmark }}
+        </div>
+
+        <!-- Benchmark Period -->
+        <div class="form-group">
+            <label for="id_benchmark_type">Benchmark Period</label>
+            {{ form.benchmark_type }}
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-group">
+            <button type="submit" id="submit-button">Run Backtest</button>
+        </div>
+    </form>
+
+    <!-- Progress Section (Initially Hidden) -->
+    <div id="progress-section" style="display:none;">
+        <div id="progress-bar-container">
+            <progress id="progress-bar" value="0" max="100"></progress>
+            <p id="progress-info">0% completed. Processing ticker: <span id="current-ticker">...</span></p>
+        </div>
+        <div id="log-output">
+            <h4>Logs:</h4>
+            <pre id="log-text"></pre>
+        </div>
+    </div>
+</div>
+
+<!-- Footer with Logo -->
+<div class="footer">
+    <img src="{% static 'img/RL_logo.png' %}" alt="Logo">
+    <p>&copy; 2024 Trading Platform</p>
+</div>
+
+<!-- Replace AJAX with WebSocket Handling -->
+<script>
+    let socket;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('form');
+        const progressSection = document.getElementById('progress-section');
+        const progressBar = document.getElementById('progress-bar');
+        const progressInfo = document.getElementById('progress-info');
+        const logText = document.getElementById('log-text');
+        const submitButton = document.getElementById('submit-button');
+
+        // Handle form submission and WebSocket communication
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            progressSection.style.display = 'block';
+            submitButton.disabled = true;
+
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+
+            // Open WebSocket connection
+            socket = new WebSocket(`ws://${window.location.host}/ws/backtest/`);
+
+            socket.onopen = function () {
+                console.log("WebSocket connection established.");
+                socket.send(JSON.stringify(data)); // Send form data over WebSocket
+            };
+
+            socket.onmessage = function (event) {
+                const message = JSON.parse(event.data);
+                if (message.progress) {
+                    progressBar.value = message.progress;
+                    progressInfo.innerText = `${message.progress}% completed. Processing ticker: ${message.current_ticker}`;
+                    logText.innerText = message.logs;
+                }
+                if (message.progress >= 100) {
+                    submitButton.disabled = false;  // Enable button when complete
+                }
+            };
+
+            socket.onerror = function (error) {
+                console.error("WebSocket error:", error);
+                alert("An error occurred with the WebSocket connection.");
+                submitButton.disabled = false;
+            };
+
+            socket.onclose = function () {
+                console.log("WebSocket connection closed.");
+            };
+        });
+    });
+</script>
+{% endblock %}
