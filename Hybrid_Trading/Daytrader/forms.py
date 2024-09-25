@@ -1,6 +1,6 @@
 from django import forms
 
-class ConfigurationForm(forms.Form):
+class DaytraderForm(forms.Form):
     MODES = [
         ('full_run', 'Full Run'),
         ('backtester', 'Backtester'),
@@ -13,19 +13,13 @@ class ConfigurationForm(forms.Form):
     start_date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date', 'placeholder': 'YYYY-MM-DD'}), label="Start Date")
     end_date = forms.DateField(widget=forms.TextInput(attrs={'type': 'date', 'placeholder': 'YYYY-MM-DD'}), label="End Date")
     
-    # General fields that will always be available for different modes
+    # General fields
     percentage = forms.ChoiceField(
-        choices=[
-            (1, '1%'), (5, '5%'), (10, '10%'), (25, '25%'), (50, '50%'), 
-            (75, '75%'), (100, '100%')
-        ], 
+        choices=[(1, '1%'), (5, '5%'), (10, '10%'), (25, '25%'), (50, '50%'), (75, '75%'), (100, '100%')], 
         label="Percentage", widget=forms.Select(attrs={'placeholder': 'Select percentage'})
     )
     interval = forms.ChoiceField(
-        choices=[
-            ('1min', '1 Minute'), ('5min', '5 Minutes'), ('15min', '15 Minutes'),
-            ('30min', '30 Minutes'), ('60min', '1 Hour'), ('1d', '1 Day')
-        ], 
+        choices=[('1min', '1 Minute'), ('5min', '5 Minutes'), ('15min', '15 Minutes'), ('30min', '30 Minutes'), ('60min', '1 Hour'), ('1d', '1 Day')], 
         label="Interval", required=False, widget=forms.Select(attrs={'placeholder': 'Select interval'})
     )
     period = forms.ChoiceField(
@@ -72,9 +66,8 @@ class ConfigurationForm(forms.Form):
     )
 
     def __init__(self, *args, **kwargs):
-        super(ConfigurationForm, self).__init__(*args, **kwargs)
-        # No need to dynamically load configurations, all options are hardcoded here
-    
+        super(DaytraderForm, self).__init__(*args, **kwargs)
+
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get("start_date")

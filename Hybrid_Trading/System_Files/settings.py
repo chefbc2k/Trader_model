@@ -2,22 +2,20 @@
 Django settings for Hybrid_Trading project.
 """
 import os
-from Hybrid_Trading.Log.Logging_Master import LoggingMaster  # You still import this if you're using it in your project
 from pathlib import Path
 from dotenv import load_dotenv
+from Hybrid_Trading.Log.Logging_Master import LoggingMaster  # Only import if you're using it
 
 # Load environment variables from the .env file
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent  # This now points directly to Hybrid_Trading 
+# Base directory of the project
+BASE_DIR = Path(__file__).resolve().parent  # Directly points to Hybrid_Trading
 
-
-# Security
-SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Loaded directly from the environment
+# Security settings
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')  # Load secret key from environment variable
 DEBUG = os.getenv('DJANGO_DEBUG', 'TRUE').lower() in ('true', '1', 't', 'yes')
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add your allowed hosts here if necessary
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']  # Add more hosts if needed
 
 # Application definition
 INSTALLED_APPS = [
@@ -27,9 +25,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'crispy_forms',
+    'crispy_bootstrap4',
+    'debug_toolbar',
+    'channels',  # For WebSocket support
+
+    # Hybrid Trading apps
     'Hybrid_Trading',  # Main app
-     'debug_toolbar',
-    'channels',  # Channels for WebSockets
+    'Hybrid_Trading.Daytrader',
     'Hybrid_Trading.Web_interface',
     'Hybrid_Trading.Symbols',
     'Hybrid_Trading.Modes',
@@ -38,15 +41,14 @@ INSTALLED_APPS = [
     'Hybrid_Trading.Data',
     'Hybrid_Trading.Backtester',
     'Hybrid_Trading.Analysis',
-    'Hybrid_Trading.Inputs',
     'Hybrid_Trading.Trading',
     'Hybrid_Trading.Dashboard',
 ]
 
 MIDDLEWARE = [
-    'debug_toolbar.middleware.DebugToolbarMiddleware', 
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Allows serving static files in development
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serves static files in production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -58,8 +60,9 @@ MIDDLEWARE = [
 # Debug Toolbar settings
 INTERNAL_IPS = [
     '127.0.0.1',
-    # Add any other IPs you want to allow, e.g., '192.168.1.100',
+    # Add more IPs for debugging if necessary
 ]
+
 DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.versions.VersionsPanel',
     'debug_toolbar.panels.timer.TimerPanel',
@@ -74,11 +77,13 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.logging.LoggingPanel',
     'debug_toolbar.panels.redirects.RedirectsPanel',
 ]
+
 DEBUG_TOOLBAR_CONFIG = {
     'INTERCEPT_REDIRECTS': False,
     'SHOW_TEMPLATE_CONTEXT': True,
 }
-# Update ROOT_URLCONF
+
+# URL configuration
 ROOT_URLCONF = 'Hybrid_Trading.System_Files.urls'
 
 # Template settings
@@ -94,9 +99,8 @@ TEMPLATES = [
             os.path.join(BASE_DIR, 'Hybrid_Trading', 'Backtester', 'templates'),
             os.path.join(BASE_DIR, 'Hybrid_Trading', 'Web_interface', 'templates'),
             os.path.join(BASE_DIR, 'Hybrid_Trading', 'Analysis', 'templates'),
-            os.path.join(BASE_DIR, 'Hybrid_Trading', 'Inputs', 'templates'),
         ],
-        'APP_DIRS': True,  # This allows Django to find templates in app-specific directories
+        'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
                 'django.template.context_processors.debug',
@@ -108,11 +112,11 @@ TEMPLATES = [
     },
 ]
 
-# WSGI and ASGI configuration
+# WSGI and ASGI application configuration
 WSGI_APPLICATION = 'Hybrid_Trading.System_Files.wsgi.application'
 ASGI_APPLICATION = 'Hybrid_Trading.System_Files.asgi.application'
 
-# Database Configuration
+# Database configuration
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -133,22 +137,20 @@ AUTH_PASSWORD_VALIDATORS = [
     # Add other validators as necessary
 ]
 
-# Internationalization
+# Localization settings
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'  # Adjust to your timezone if necessary
+TIME_ZONE = 'UTC'  # Adjust as per your time zone
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 STATIC_URL = '/static/'
-
-# Where Django looks for static files during development
 STATICFILES_DIRS = [
-os.path.join(BASE_DIR.parent, 'Web_interface', 'static'), 
+    os.path.join(BASE_DIR.parent, 'Web_interface', 'static'),
 ]
 
-# For production (where static files are collected)
+# Static root for production
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
 # Media files
@@ -171,12 +173,12 @@ LOGGING = {
     },
     'handlers': {
         'console': {
-            'level': 'DEBUG',  # Show everything from debug level upwards in the console
+            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
             'formatter': 'simple',
         },
         'file': {
-            'level': 'DEBUG',  # Capture everything from debug level upwards in the log file
+            'level': 'DEBUG',
             'class': 'logging.FileHandler',
             'filename': os.path.join(BASE_DIR, 'Hybrid_Trading_logs.log'),
             'formatter': 'verbose',
@@ -185,39 +187,41 @@ LOGGING = {
     'loggers': {
         'django': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',  # Show all Django-related logs at DEBUG level
+            'level': 'DEBUG',
             'propagate': True,
         },
         'django.db.backends': {
             'handlers': ['file'],
-            'level': 'DEBUG',  # Capture all database-related logs
+            'level': 'DEBUG',
             'propagate': False,
         },
         'hybrid_trading': {
             'handlers': ['console', 'file'],
-            'level': 'DEBUG',  # Set 'hybrid_trading' app logging level to DEBUG
+            'level': 'DEBUG',
             'propagate': True,
         },
         'django.request': {
             'handlers': ['file'],
-            'level': 'ERROR',  # Log errors only for HTTP requests
+            'level': 'ERROR',
             'propagate': False,
         },
         'django.security': {
             'handlers': ['file'],
-            'level': 'WARNING',  # Capture security warnings in the log file
+            'level': 'WARNING',
             'propagate': False,
         },
     },
 }
 
-# Channels (WebSocket configuration)
+# Channels configuration for WebSockets
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels.layers.InMemoryChannelLayer',
     },
 }
 
-
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Crispy Forms configuration
+CRISPY_TEMPLATE_PACK = 'bootstrap4'  # Bootstrap 4 form template pack

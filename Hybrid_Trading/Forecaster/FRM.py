@@ -3,7 +3,7 @@ import os
 import time
 from typing import List
 from dotenv import load_dotenv
-from Hybrid_Trading.Modes.DTM import DTPipelineOrchestrator
+from Hybrid_Trading.Daytrader.DTM import DTPipelineOrchestrator
 from Config.trading_constants import TCS
 from Hybrid_Trading.Symbols.SymbolScrapper import TickerScraper
 from Config.utils import TempFiles  # Assuming TempFiles is in a Utilities directory

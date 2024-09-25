@@ -5,7 +5,7 @@ from django.db.models import Avg
 from .models import NewsData  # Assuming you have a model called NewsData
 from Hybrid_Trading.Analysis.News.news_classifier import NewsClassifier  # Corrected import path
 from Hybrid_Trading.Data.Storage.CDS import CentralizedDataStorage
-from Hybrid_Trading.Inputs.forms import ConfigurationForm  # Import your user input form
+from Hybrid_Trading.Daytrader.forms import ConfigurationForm  # Import your user input form
 
 # Unified class-based view for rendering, analyzing sentiment, and classified news
 class NewsAnalysisView(TemplateView):

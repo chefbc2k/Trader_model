@@ -1,21 +1,23 @@
-<!-- templates/user_input.html -->
 {% extends "base.html" %}
 {% load crispy_forms_tags %}
 
-{% block title %}User Input{% endblock %}
+{% block title %}Trading Bot Configuration{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4" data-aos="fade-up">Select Your Preferences</h2>
-    <form id="user-input-form" method="post" class="needs-validation" novalidate data-aos="fade-in">
-        {% csrf_token %}
-        {{ form|crispy }}
+    <h2 class="text-center mb-4" data-aos="fade-up">Day Trader Configuration</h2>
 
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary mt-3" data-aos="zoom-in">
-            <i class="fas fa-paper-plane"></i> Submit
-        </button>
-    </form>
+    <div class="btn-container" data-aos="fade-up" data-aos-delay="400">
+        <form id="user-input-form" method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            {{ form|crispy }}  <!-- Render the form with crispy_forms -->
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn btn-primary mt-3" data-aos="zoom-in">
+                <i class="fas fa-paper-plane"></i> Submit
+            </button>
+        </form>
+    </div>
 
     <!-- Confirmation Message -->
     <div id="confirmation-message" style="display: none;" class="alert alert-success text-center mt-4" data-aos="fade-down">
